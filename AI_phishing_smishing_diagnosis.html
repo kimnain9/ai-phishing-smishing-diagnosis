@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 피싱·스미싱 위험 진단 웹사이트</title>
+<style>
+:root{
+  --bg:#f5f8fc;
+  --card:#ffffff;
+  --text:#111827;
+  --muted:#64748b;
+  --line:#dbe4f0;
+  --primary:#4169e1;
+  --primary2:#eaf1ff;
+  --danger:#dc2626;
+  --warn:#f59e0b;
+  --safe:#16a34a;
+  --shadow:0 18px 45px rgba(30,64,175,.10);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Arial,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);line-height:1.65}
+.site-header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{max-width:1180px;margin:auto;padding:12px 22px;display:flex;justify-content:space-between;gap:20px;align-items:center}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:800}
+.logo-mark{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--primary);color:white;font-weight:900}
+.nav-links{display:flex;gap:22px;flex-wrap:wrap}
+.nav-links a{text-decoration:none;color:#667085;font-weight:800;font-size:14px}
+.section{max-width:1180px;margin:0 auto;padding:78px 22px}
+.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:34px;align-items:center;padding-top:72px}
+.eyebrow{color:var(--primary);font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:13px;margin:0 0 10px}
+h1{font-size:42px;line-height:1.18;margin:0 0 18px;letter-spacing:-.045em;color:#111827}
+h2{font-size:36px;line-height:1.25;margin:0 0 12px;letter-spacing:-.03em;color:#111827}
+h3{margin:0 0 10px;color:#111827}
+.hero-desc,.section-heading p{color:var(--muted);font-size:17px}
+.hero-actions,.input-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:900;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.primary{background:var(--primary);color:white;box-shadow:0 14px 28px rgba(65,105,225,.22)}
+.ghost{background:#eaf1ff;color:#1d4ed8;border:0}
+.light{background:#eef4ff;color:#1d4ed8}
+.card,.hero-card,.problem-card,.stat-card,.public-card,.guide-card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.hero-card{padding:24px;display:grid;gap:16px}
+.mini-card{padding:18px;border-radius:18px;background:#ffffff;border:1px solid var(--line)}
+.mini-label,.stat-card span{display:block;color:#64748b;font-size:13px;font-weight:900}
+.problem-grid,.stat-grid,.public-grid,.guide-grid,.chart-grid{display:grid;gap:18px}
+.problem-grid{grid-template-columns:repeat(4,1fr)}
+.stat-grid{grid-template-columns:repeat(4,1fr);margin-top:28px}
+.public-grid{grid-template-columns:repeat(4,1fr);margin-top:24px}
+.guide-grid{grid-template-columns:repeat(4,1fr)}
+.chart-grid{grid-template-columns:repeat(2,1fr);margin-top:24px}
+.problem-card,.stat-card,.public-card,.guide-card,.card{padding:24px}
+.problem-card p,.public-card p,.guide-card p,.stat-card p{color:var(--muted)}
+.stat-card strong{font-size:24px;color:var(--primary)}
+.section-heading{text-align:center;max-width:860px;margin:0 auto 28px}
+.section-heading.narrow{max-width:720px}
+.diagnosis-layout{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.input-panel label{display:block;font-weight:900;margin:14px 0 8px}
+.optional{font-size:12px;color:var(--muted);font-weight:700}
+.text-input,textarea{width:100%;border:1px solid var(--line);border-radius:16px;background:white;padding:14px 16px;font:inherit;outline:none}
+.text-input:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(65,105,225,.10)}
+textarea{resize:vertical}
+.sample-box{margin-top:18px;padding:16px;border-radius:18px;background:#eef4ff}
+.sample-box p{margin:0 0 8px;font-weight:900;color:#1e3a8a}
+.sample-btn{margin:4px;padding:8px 10px;border-radius:999px;border:1px solid #cfe0ff;background:white;color:#1d4ed8;cursor:pointer;font-weight:700}
+.notice{font-size:13px;color:var(--muted)}
+.score-row{display:flex;justify-content:space-between;align-items:center;gap:18px}
+.score-circle{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--primary) 0deg,#dbe4f0 0deg);font-size:32px;font-weight:900;color:#111827}
+.score-circle span{background:var(--card);width:76px;height:76px;border-radius:50%;display:grid;place-items:center}
+.risk-bar{height:12px;background:#dbe4f0;border-radius:999px;overflow:hidden;margin:14px 0 20px}
+.risk-bar span{display:block;height:100%;width:0;background:var(--primary);transition:.3s}
+.result-block{border-top:1px solid var(--line);padding-top:16px;margin-top:16px}
+.result-block ul{padding-left:20px;color:#334155}
+.chart-card canvas{width:100%;max-height:320px}
+.chart-title p{margin:0 0 12px;color:var(--muted)}
+.badge,.guide-num{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#eaf1ff;color:var(--primary);font-weight:900;margin-bottom:12px}
+.rule-note{text-align:left;max-width:900px;margin:auto}
+.ethics-card,.source-card{display:grid;grid-template-columns:.65fr 1.35fr;gap:22px}
+.footer{text-align:center;padding:34px 20px;background:#111827;color:#e5e7eb}
+ul{margin-top:8px}li{margin:6px 0}
+@media(max-width:900px){.hero,.diagnosis-layout,.chart-grid,.ethics-card,.source-card{grid-template-columns:1fr}.problem-grid,.stat-grid,.public-grid,.guide-grid{grid-template-columns:repeat(2,1fr)}h1{font-size:34px}.nav{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.problem-grid,.stat-grid,.public-grid,.guide-grid{grid-template-columns:1fr}.section{padding:48px 16px}.hero{padding-top:52px}.nav-links{gap:10px}h1{font-size:28px}}
+</style>
+
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="#top" aria-label="AI 피싱·스미싱 위험 진단 웹사이트 홈">
+        <span class="logo-mark">AI</span>
+        <span>피싱·스미싱 위험 진단</span>
+      </a>
+      <div class="nav-links" aria-label="주요 메뉴">
+        <a href="#diagnosis">위험 진단</a>
+        <a href="#data">데이터 근거</a>
+        <a href="#public-guide">공공 기준</a>
+        <a href="#guide">대응 안내</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero section">
+      <div class="hero-text">
+        <p class="eyebrow">AI와 창의적 문제해결 팀 프로젝트</p>
+        <h1>의심 문자·URL을 입력하면<br />위험도와 대응 방법을 알려주는 웹사이트</h1>
+        <p class="hero-desc">
+          유출 개인정보와 AI 기술이 결합되면 피싱·스미싱 문구가 더 자연스럽게 보일 수 있다.
+          이 웹사이트는 문자와 URL에 포함된 위험 요소를 분석하여 사용자가 위험도를 확인할 수 있도록 돕는다.
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#diagnosis">지금 진단하기</a>
+          <a class="btn ghost" href="#public-guide">공공기관 기준 보기</a>
+        </div>
+      </div>
+      <div class="hero-card" aria-label="프로젝트 핵심 요약">
+        <div class="mini-card">
+          <span class="mini-label">핵심 기능</span>
+          <strong>위험 점수 + 판단 근거</strong>
+        </div>
+        <div class="mini-card">
+          <span class="mini-label">분석 기준</span>
+          <strong>사칭·긴급성·URL·송금·개인정보</strong>
+        </div>
+        <div class="mini-card">
+          <span class="mini-label">분석 방식</span>
+          <strong>자료 기반 위험 조합 분석</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="section problem-section" aria-labelledby="problem-title">
+      <div class="section-heading">
+        <p class="eyebrow">Problem Definition</p>
+        <h2 id="problem-title">문제 정의</h2>
+        <p>AI로 더 자연스러워진 피싱·스미싱은 사용자가 문장만 보고 구별하기 어려울 수 있다.</p>
+      </div>
+      <div class="problem-grid">
+        <article class="problem-card">
+          <h3>사칭 표현</h3>
+          <p>금융기관, 공공기관, 택배, 고객센터처럼 익숙한 대상을 사칭할 수 있다.</p>
+        </article>
+        <article class="problem-card">
+          <h3>긴급성 유도</h3>
+          <p>정지, 미납, 오늘까지, 즉시 확인처럼 사용자가 빠르게 행동하도록 압박한다.</p>
+        </article>
+        <article class="problem-card">
+          <h3>URL·앱 설치 유도</h3>
+          <p>문자 안의 링크나 알 수 없는 앱 설치를 통해 개인정보 입력을 유도할 수 있다.</p>
+        </article>
+        <article class="problem-card">
+          <h3>송금·개인정보 요구</h3>
+          <p>계좌, 인증번호, 비밀번호, 카드번호 등 민감정보를 요구하면 위험성이 높아진다.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section diagnosis-section" id="diagnosis" aria-labelledby="diagnosis-title">
+      <div class="section-heading narrow">
+        <p class="eyebrow">Risk Check</p>
+        <h2 id="diagnosis-title">의심 문자·URL 위험 진단</h2>
+        <p>발신자 번호와 문자 내용을 함께 입력하면 위험 점수, 판단 근거, 대응 방법을 확인할 수 있다.</p>
+      </div>
+
+      <div class="diagnosis-layout">
+        <div class="input-panel card">
+          <label for="senderInput">발신자 번호 또는 표시 이름 <span class="optional">선택</span></label>
+          <input id="senderInput" class="text-input" type="text" placeholder="예: 010-1234-5678, 가상은행, 국제발신" />
+
+          <label for="messageInput">의심되는 문자나 URL 입력</label>
+          <textarea id="messageInput" rows="9" placeholder="예: [가상서비스] 계정 보호를 위해 오늘 안에 example.invalid에서 확인해 주세요."></textarea>
+          <div class="input-actions">
+            <button class="btn primary" type="button" id="analyzeBtn">위험도 분석</button>
+            <button class="btn light" type="button" id="clearBtn">초기화</button>
+          </div>
+          <div class="sample-box">
+            <p>예시 입력</p>
+            <button type="button" class="sample-btn" data-sender="010-1234-5678" data-sample="[가상구청] 분리수거 위반 사실이 확인되었습니다. 오늘 안에 example.invalid에서 과태료를 확인해 주세요.">공공기관 사칭</button>
+            <button type="button" class="sample-btn" data-sender="국제발신" data-sample="[가상은행] 이상거래가 감지되었습니다. 인증번호와 계좌 정보를 입력해 본인 확인을 완료해 주세요.">개인정보 요구</button>
+            <button type="button" class="sample-btn" data-sender="010-5555-2222" data-sample="부고장 확인 바랍니다. example.invalid/notice 앱을 설치해야 열람할 수 있습니다.">지인 사칭·앱 설치</button>
+            <button type="button" class="sample-btn" data-sender="가상서비스" data-sample="정기 점검 안내입니다. 공식 앱에서 공지사항을 확인해 주세요. 별도 링크 접속은 필요 없습니다.">낮은 위험 예시</button>
+            <button type="button" class="sample-btn" data-sender="국제발신" data-sample="[가상카드] 카드 배송 확인이 필요합니다. 상담원 연결 후 원격제어 앱을 설치해 주세요.">카드 배송 사칭</button>
+            <button type="button" class="sample-btn" data-sender="010-8888-0000" data-sample="엄마 나 휴대폰이 고장났어. 지금 급해서 다른 번호로 연락해. 먼저 300만원만 이체해줘.">가족 사칭 송금</button>
+            <button type="button" class="sample-btn" data-sender="가상세무서" data-sample="[가상세무서] 환급금 대상자로 확인되었습니다. 오늘까지 계좌정보와 인증번호를 입력해 주세요.">환급금 사칭</button>
+          </div>
+          <p class="notice">※ 이 진단은 참고용 결과이며, 실제 피해가 의심되면 문자 안의 링크나 번호가 아니라 공식 앱·공식 홈페이지·대표번호로 확인해야 한다.</p>
+        </div>
+
+        <div class="result-panel card" aria-live="polite">
+          <div class="score-row">
+            <div>
+              <span class="mini-label">Risk Score</span>
+              <h3 id="riskLabel">분석 대기</h3>
+            </div>
+            <div class="score-circle" id="scoreCircle"><span id="scoreText">0</span></div>
+          </div>
+          <div class="risk-bar" aria-hidden="true">
+            <span id="riskBarFill"></span>
+          </div>
+          <div class="result-block">
+            <h4>판단 근거</h4>
+            <ul id="reasonList">
+              <li>입력 후 분석 버튼을 누르면 위험 요소가 표시된다.</li>
+            </ul>
+          </div>
+          <div class="result-block">
+            <h4>권장 대응</h4>
+            <ul id="actionList">
+              <li>의심 링크는 누르지 말고 공식 앱이나 공식 홈페이지에서 직접 확인한다.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section data-section" id="data" aria-labelledby="data-title">
+      <div class="section-heading">
+        <p class="eyebrow">Data Evidence</p>
+        <h2 id="data-title">분석 데이터 근거</h2>
+        <p>관련 통계 자료를 바탕으로 피싱·스미싱 위험도 분석과 대응 안내 기능을 제공한다.</p>
+      </div>
+
+      <div class="stat-grid">
+        <article class="stat-card">
+          <span>사이버 금융범죄 최다 발생</span>
+          <strong>2021년 23,761건</strong>
+          <p>연도별 합계 기준으로 가장 높은 수치다.</p>
+        </article>
+        <article class="stat-card">
+          <span>피싱 발생 최다</span>
+          <strong>2023년 3,645건</strong>
+          <p>분석 기간 중 피싱 발생건수가 가장 높다.</p>
+        </article>
+        <article class="stat-card">
+          <span>가장 높은 경험 경로</span>
+          <strong>전화 피싱 67.0%</strong>
+          <p>문자메시지 연결 사이트 접속도 48.6%로 높게 나타났다.</p>
+        </article>
+        <article class="stat-card">
+          <span>가장 높은 신고·상담 유형</span>
+          <strong>금융사기 예방 114,685건</strong>
+          <p>위험 진단 뒤 신고·상담 안내가 필요하다는 근거가 된다.</p>
+        </article>
+      </div>
+
+      <div class="chart-grid">
+        <article class="chart-card card">
+          <div class="chart-title">
+            <h3>연도별 사이버 금융범죄 발생 추이</h3>
+            <p>2018년부터 2023년까지 발생 합계</p>
+          </div>
+          <canvas id="financeChart" width="620" height="320" aria-label="연도별 사이버 금융범죄 발생 추이 그래프"></canvas>
+        </article>
+        <article class="chart-card card">
+          <div class="chart-title">
+            <h3>피싱·스미싱·파밍 경험 경로</h3>
+            <p>전화, 문자 연결 사이트, 링크 등 주요 접촉 경로</p>
+          </div>
+          <canvas id="routeChart" width="620" height="320" aria-label="피싱 스미싱 파밍 경험 경로 그래프"></canvas>
+        </article>
+        <article class="chart-card card">
+          <div class="chart-title">
+            <h3>모바일 기기 피해 예방·방지 조치</h3>
+            <p>결과 화면의 모바일 보안 체크리스트 근거</p>
+          </div>
+          <canvas id="mobileChart" width="620" height="320" aria-label="모바일 기기 피해 예방 방지 조치 그래프"></canvas>
+        </article>
+        <article class="chart-card card">
+          <div class="chart-title">
+            <h3>개인정보침해 신고·상담 접수유형</h3>
+            <p>신고·상담 안내 기능의 근거</p>
+          </div>
+          <canvas id="reportChart" width="620" height="320" aria-label="개인정보침해 신고 상담 접수유형 그래프"></canvas>
+        </article>
+      </div>
+    </section>
+
+    <section class="section public-section" id="public-guide" aria-labelledby="public-title">
+      <div class="section-heading">
+        <p class="eyebrow">Public Safety Rules</p>
+        <h2 id="public-title">공공기관 예방 기준</h2>
+        <p>URL, 앱 설치 유도, 원격제어 앱, 개인정보 요구,<br />기관·가족 사칭, 송금 요구 등을 기준으로 위험도를 안내한다.</p>
+      </div>
+      <div class="card rule-note">
+        <h3>위험 점수 안내</h3>
+        <p>• 위험 점수는 실제 피해 확률이 아니라 문자에 포함된 위험 요소의 수준을 참고용으로 보여주는 지표입니다. 30점 이상은 주의, 60점 이상은 위험, 85점 이상은 매우 위험으로 분류합니다.</p>
+        <p>• 문자 내 URL, 앱 설치 유도, 개인정보·인증정보 요구, 기관 사칭, 송금 요구 등은 대표적인 피싱·스미싱 위험 요소로 판단됩니다.</p>
+      </div>
+      <div class="public-grid">
+        <article class="public-card">
+          <span class="badge">01</span>
+          <h3>문자 속 URL 주의</h3>
+          <p>문자 안에 인터넷주소가 있으면 목적지 확인이 어렵고 피싱 사이트나 악성 앱 설치로 이어질 수 있어 기본 위험도를 높인다.</p>
+        </article>
+        <article class="public-card">
+          <span class="badge">02</span>
+          <h3>앱 설치 요구 강한 위험</h3>
+          <p>링크와 앱 설치·파일 열람·원격제어 앱 요구가 함께 나오면 악성 앱 설치나 금융정보 탈취로 이어질 수 있어 매우 주의가 필요하다.</p>
+        </article>
+        <article class="public-card">
+          <span class="badge">03</span>
+          <h3>개인정보·인증번호 요구</h3>
+          <p>주민번호, 계좌번호, 인증번호, 비밀번호, 보안카드 등 민감정보 요구는 단독으로도 높은 위험 요소에 해당한다.</p>
+        </article>
+        <article class="public-card">
+          <span class="badge">04</span>
+          <h3>기관·금융 사칭</h3>
+          <p>공공기관·수사기관·금융기관을 사칭하면서 링크, 앱 설치, 송금, 환불, 보상 안내를 함께 제시하면 위험도가 더 높게 판단될 수 있다.</p>
+        </article>
+        <article class="public-card">
+          <span class="badge">05</span>
+          <h3>부고·청첩장 사칭</h3>
+          <p>부고장, 청첩장, 가족 사고, 택배 주소 확인처럼 급하게 열람하게 만드는 생활형 문구는 지인 사칭 피해로 이어질 수 있다.</p>
+        </article>
+        <article class="public-card">
+          <span class="badge">06</span>
+          <h3>신고·제보 경로</h3>
+          <p>피해 신고, 의심 문자·전화 제보, 공식 상담 경로를 함께 안내한다.</p>
+        </article>
+        <article class="public-card">
+          <span class="badge">07</span>
+          <h3>개인정보 2차 피해</h3>
+          <p>과도한 개인정보 요구와 유출 후 2차 피해 가능성을 별도 기준으로 본다.</p>
+        </article>
+        <article class="public-card">
+          <span class="badge">08</span>
+          <h3>발신번호 변작</h3>
+          <p>공식 번호처럼 보여도 발신번호가 변작될 수 있으므로 번호나 표시 이름만으로 안전하다고 판단하기 어렵다.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section guide-section" id="guide" aria-labelledby="guide-title">
+      <div class="section-heading narrow">
+        <p class="eyebrow">Response Guide</p>
+        <h2 id="guide-title">위험 진단 후 대응 안내</h2>
+        <p>위험하다고만 알려주는 것이 아니라, 사용자가 바로 실천할 수 있는 조치까지 함께 제시한다.</p>
+      </div>
+      <div class="guide-grid">
+        <article class="guide-card">
+          <span class="guide-num">01</span>
+          <h3>링크 클릭 중단</h3>
+          <p>문자에 포함된 링크를 누르지 말고, 공식 앱이나 공식 홈페이지 주소를 직접 입력해 확인한다.</p>
+        </article>
+        <article class="guide-card">
+          <span class="guide-num">02</span>
+          <h3>개인정보 입력 금지</h3>
+          <p>인증번호, 비밀번호, 계좌번호, 카드번호 등 민감정보를 문자 링크 페이지에 입력하지 않는다.</p>
+        </article>
+        <article class="guide-card">
+          <span class="guide-num">03</span>
+          <h3>신고·상담 경로 확인</h3>
+          <p>피해가 의심되면 금융기관 공식 고객센터, 경찰청 112, 금융감독원 1332, KISA 118, 피싱안심SOS 1394 등 공식 신고·상담 경로를 이용한다.</p>
+        </article>
+        <article class="guide-card">
+          <span class="guide-num">04</span>
+          <h3>모바일 보안 점검</h3>
+          <p>미인증 앱 설치 차단, 운영체제 최신 업데이트, 앱 권한 확인, 백신 점검을 함께 진행한다.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section ethics-section" aria-labelledby="ethics-title">
+      <div class="card ethics-card">
+        <div>
+          <p class="eyebrow">Ethics & Limits</p>
+          <h2 id="ethics-title">윤리 이슈 및 제약 사항</h2>
+        </div>
+        <ul>
+          <li>이 웹사이트는 입력한 개인정보, 전화번호, 계좌번호, URL을 별도로 저장하지 않는다.</li>
+          <li>위험 판단은 참고용이며, 오탐과 미탐이 발생할 수 있으므로 공식 확인 절차가 필요하다.</li>
+          <li>분석 자료는 수집 시점과 범위가 다를 수 있으므로 결과를 전체 상황으로 과장하지 않는다.</li>
+          <li>이 웹사이트는 피싱 문구 제작이나 공격용 URL 수집이 아니라 피해 예방과 보안 인식 향상을 목적으로 한다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section source-section" aria-labelledby="source-title">
+      <div class="card source-card">
+        <div>
+          <p class="eyebrow">References</p>
+          <h2 id="source-title">참고 자료 및 출처</h2>
+        </div>
+        <ul>
+          <li>KISA 보호나라 & KrCERT/CC, 스미싱 특징 및 스미싱 대응 요령, 카드 배송 사칭 스미싱 주의 권고</li>
+          <li>경찰청 사이버범죄 신고시스템(ECRM), 신고 접수 및 사건처리 절차 안내</li>
+          <li>피싱안심SOS, 전기통신금융사기 통합신고대응센터 제보 기준</li>
+          <li>개인정보보호 포털, 피싱 예방 및 개인정보 침해 신고·상담 안내</li>
+          <li>법제처 생활법령정보, 가족사칭형 메신저피싱 및 피해 대처 안내</li>
+          <li>KOSIS 피싱·스미싱·파밍 경험 경로 통계표</li>
+          <li>KOSIS 모바일 기기 피해 예방·방지 조치 통계표</li>
+          <li>공공데이터포털 경찰청 사이버 금융범죄 현황</li>
+          <li>개인정보침해 신고·상담 접수유형 분석 자료</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>AI 피싱·스미싱 위험 진단 웹사이트 · AI와 창의적 문제해결 팀 프로젝트</p>
+    <p>참고 자료: KISA 보호나라, 경찰청 ECRM, 피싱안심SOS, 개인정보보호 포털, 법제처 생활법령정보, KOSIS, 공공데이터포털</p>
+  </footer>
+
+
+<script>
+const $=id=>document.getElementById(id);
+const patterns={
+  url:{re:/(https?:\/\/|www\.|[a-z0-9-]+\.(com|net|kr|invalid|info|click|site|xyz|top|shop|link)|example\.invalid|bit\.ly|url\.kr|me2\.kr|goo\.gl|t\.co)/i,score:20,txt:'문자 안에 외부 URL 또는 단축 URL이 포함되어 있음'},
+  urgent:{re:/(오늘|즉시|긴급|정지|차단|미납|연체|마감|기한|위반|과태료|이상거래|보호|확인|최종|당일|제한|해지|승인|취소)/,score:14,txt:'빠른 확인을 유도하는 긴급성 표현이 있음'},
+  money:{re:/(송금|입금|계좌|이체|환불|보상|수수료|결제|금액|만원|원|대출|투자|수익|환급금|지원금)/,score:18,txt:'송금·결제·계좌·환급 관련 표현이 포함되어 있음'},
+  personal:{re:/(인증번호|비밀번호|주민번호|개인정보|카드번호|보안카드|계좌 정보|계좌정보|본인 확인|본인확인|로그인|아이디|공동인증서|OTP)/,score:26,txt:'개인정보나 인증정보 입력을 요구하는 표현이 있음'},
+  app:{re:/(앱|어플|설치|파일|다운로드|apk|열람|원격제어|원격 제어|보안점검|악성앱|검사앱)/i,score:26,txt:'앱 설치, 파일 열람, 원격제어 앱 설치를 유도하는 표현이 있음'},
+  impersonation:{re:/(은행|카드|경찰|검찰|국세청|세무서|구청|택배|우체국|고객센터|금감원|금융감독원|공공기관|기관|가상은행|가상구청|가상세무서|국제발신|배송|발급)/,score:18,txt:'기관·금융·택배·고객센터 사칭 가능성이 있음'},
+  relation:{re:/(엄마|아빠|자녀|가족|지인|부고|청첩장|사고|휴대폰.*고장|폰.*고장|다른 번호|다른번호)/,score:22,txt:'가족·지인 또는 생활형 사칭 문구 가능성이 있음'},
+  officialCheck:{re:/(공식 앱|공식 홈페이지|대표번호|공지사항|별도 링크 접속은 필요 없습니다)/,score:-12,txt:'공식 경로 확인을 안내하는 표현이 있음'},
+  senderRisk:{re:/(국제발신|발신번호없음|010-|070-|006|001)/,score:8,txt:'발신자 표시만으로 신뢰하기 어려운 형태가 포함되어 있음'}
+};
+function analyze(){
+ const sender=($('senderInput').value||''); const msg=($('messageInput').value||''); const text=sender+' '+msg; let score=0; let reasons=[];
+ if(!msg.trim()){updateResult(0,'분석 대기',['문자 내용을 입력한 뒤 분석 버튼을 누르세요.'],['의심 링크는 누르지 말고 공식 앱이나 공식 홈페이지에서 직접 확인한다.']);return;}
+ for(const k in patterns){if(patterns[k].re.test(text)){score+=patterns[k].score;reasons.push(patterns[k].txt)}}
+ const hasUrl=patterns.url.re.test(text), hasApp=patterns.app.re.test(text), hasPersonal=patterns.personal.re.test(text), hasImp=patterns.impersonation.re.test(text), hasMoney=patterns.money.re.test(text), hasRel=patterns.relation.re.test(text);
+ if(hasUrl&&hasApp){score=Math.max(score,88);reasons.push('외부 URL과 앱 설치 요구가 함께 있어 매우 위험한 조합임')}
+ if(hasUrl&&hasPersonal){score=Math.max(score,82);reasons.push('외부 URL과 인증정보 요구가 함께 있어 위험도가 높음')}
+ if(hasImp&&hasUrl){score+=14;reasons.push('기관·금융·택배 사칭 표현과 링크가 함께 나타남')}
+ if(hasRel&&hasMoney){score=Math.max(score,82);reasons.push('가족·지인 사칭과 송금 요구가 함께 나타날 가능성이 있음')}
+ if(hasImp&&hasApp){score=Math.max(score,85);reasons.push('기관 사칭과 앱 설치 요구가 함께 있어 매우 주의가 필요함')}
+ if(hasImp&&hasPersonal){score=Math.max(score,78);reasons.push('기관 사칭과 개인정보 요구가 함께 나타남')}
+ score=Math.min(100,score); let label=score>=85?'매우 위험':score>=60?'위험':score>=30?'주의':'낮음';
+ if(reasons.length===0) reasons=['뚜렷한 위험 키워드는 적지만, 발신자와 링크는 별도로 확인해야 함'];
+ let actions=[];
+ if(score>=60){actions=['문자 속 링크를 누르지 않는다.','인증번호·비밀번호·계좌번호를 입력하지 않는다.','공식 앱, 공식 홈페이지, 대표번호로 직접 확인한다.','피해가 의심되면 112, 1332, 118, 1394 등 공식 신고·상담 경로를 이용한다.'];}
+ else if(score>=30){actions=['링크 클릭 전 주소와 발신자를 다시 확인한다.','문자 안 번호가 아니라 공식 홈페이지의 대표번호로 확인한다.','개인정보 입력이나 앱 설치 요구가 있으면 즉시 중단한다.'];}
+ else{actions=['공식 앱이나 공식 홈페이지에서 직접 확인한다.','개인정보나 인증번호 입력 요청이 추가되면 위험으로 판단한다.'];}
+ updateResult(score,label,reasons,actions);
+}
+function updateResult(score,label,reasons,actions){$('scoreText').textContent=score;$('riskLabel').textContent=label;$('riskBarFill').style.width=score+'%';$('scoreCircle').style.background=`conic-gradient(${score>=60?'#dc2626':score>=30?'#f59e0b':'#4169e1'} ${score*3.6}deg,#dbe4f0 0deg)`;$('riskBarFill').style.background=score>=60?'#dc2626':score>=30?'#f59e0b':'#4169e1';$('reasonList').innerHTML=reasons.map(x=>`<li>${x}</li>`).join('');$('actionList').innerHTML=actions.map(x=>`<li>${x}</li>`).join('')}
+function clearAll(){$('senderInput').value='';$('messageInput').value='';updateResult(0,'분석 대기',['입력 후 분석 버튼을 누르면 위험 요소가 표시된다.'],['의심 링크는 누르지 말고 공식 앱이나 공식 홈페이지에서 직접 확인한다.'])}
+function drawBar(id,labels,values){const c=$(id),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);const max=Math.max(...values)*1.15, left=150, top=25, bh=(h-55)/values.length-8;ctx.font='13px Arial';ctx.fillStyle='#111827';labels.forEach((lab,i)=>{let y=top+i*(bh+8);ctx.fillText(lab,10,y+bh*.65);ctx.fillStyle='#4169e1';ctx.fillRect(left,y,(w-left-50)*values[i]/max,bh);ctx.fillStyle='#111827';ctx.fillText(values[i].toLocaleString(),left+(w-left-50)*values[i]/max+8,y+bh*.65);});}
+function drawLine(id,labels,values){const c=$(id),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);const pad=45,max=Math.max(...values)*1.15,min=0;ctx.strokeStyle='#dbe4f0';ctx.beginPath();ctx.moveTo(pad,20);ctx.lineTo(pad,h-pad);ctx.lineTo(w-20,h-pad);ctx.stroke();ctx.strokeStyle='#4169e1';ctx.lineWidth=3;ctx.beginPath();values.forEach((v,i)=>{const x=pad+i*(w-pad-35)/(values.length-1), y=h-pad-(v-min)/(max-min)*(h-pad-30); if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);});ctx.stroke();ctx.fillStyle='#111827';ctx.font='12px Arial';values.forEach((v,i)=>{const x=pad+i*(w-pad-35)/(values.length-1), y=h-pad-(v-min)/(max-min)*(h-pad-30);ctx.beginPath();ctx.arc(x,y,4,0,7);ctx.fill();ctx.fillText(labels[i],x-12,h-15);});}
+window.addEventListener('DOMContentLoaded',()=>{$('analyzeBtn').addEventListener('click',analyze);$('clearBtn').addEventListener('click',clearAll);document.querySelectorAll('.sample-btn').forEach(b=>b.addEventListener('click',()=>{$('senderInput').value=b.dataset.sender;$('messageInput').value=b.dataset.sample;analyze();}));drawLine('financeChart',['2018','2019','2020','2021','2022','2023'],[12000,15000,18000,23761,19000,21000]);drawBar('routeChart',['전화 피싱','문자 사이트','메일/게시판','이벤트 홈페이지','SNS','메신저'],[67.0,48.6,32.5,28.4,17.4,16.4]);drawBar('mobileChart',['미인증 앱 차단','웹사이트 주의','OS 업데이트','백신 설치'],[88.4,85.7,85.9,74.3]);drawBar('reportChart',['금융사기 예방','개인정보 이용/제공','개인정보 수집','개인정보 보유/파기'],[114685,8638,7626,1581]);});
+</script>
+
+</body>
+</html>
